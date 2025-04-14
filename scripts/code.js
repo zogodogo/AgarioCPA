@@ -6,6 +6,13 @@ script.onreadystatechange = callback;
 script.onload = callback;
 head.appendChild(script);
 
+var worldWidth = 2000;
+var worldHeight = 2000;
+
+var mapCenter = { x: 2000, y: 2000 }; // adjust as needed
+var mapRadius = 1800; // the playable area
+
+
 /****************************************************
  * Exercise 1: Collision entre cercle et bordure.   *
  *                                                  *
@@ -35,7 +42,7 @@ function collisionLeftBorder(circle){
 function collisionRightBorder(circle){
 /*******************
  * PARTIE A ECRIRE */
-    return circle.x+circle.radius>main_window.width;
+    return circle.x+circle.radius>worldWidth;
     //return false;
 /*******************/
 }
@@ -53,7 +60,7 @@ function collisionTopBorder(circle){
 function collisionBottomBorder(circle){
 /*******************
  * PARTIE A ECRIRE */
-    return circle.y+circle.radius>main_window.height;
+    return circle.y+circle.radius>worldHeight;
     //return false;
 /*******************/
 }

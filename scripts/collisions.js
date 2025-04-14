@@ -9,61 +9,109 @@
 // INIT SOME CONFIGURATIONS //
 //--------------------------//
 
-
-
-
 var context=main_window.getContext('2d');
+
+var worldWidth = 2000;
+var worldHeight = 2000;
+
+
 var width=main_window.width;
 var height=main_window.height;
 var friction=0.98;
+
+
 var red = new player(0x51E77E,
-                    new avatar(3*width/4,height/2,height/6,"#FF0000","#FF2400"),
+                    new avatar(3*worldWidth/4,worldHeight/2,height/6,"#FF0000","#FF2400"),
                     new keys(0x25,0x27,0x26,0x28)
                     );
-var blue = new player(0xED1C7E,
-                    new avatar(width/4,height/2,height/8,"#0000FF","#0066FF"),
-                    new keys(0x51,0x44,0x5A,0x53)
-                    );
-/*var black = new player(0xBADDAD,
-                    new avatar(width/2,height/2,height/4.5,"#000000","#505050"),
-                    new keys(0x00,0x00,0x00,0x00)
-                    );*/
-var goal = {x:width-blue.avatar.radius,y:height/3,
-            width:width-blue.avatar.radius/2,height:height/3};
-
   
 var p1 = new food(
-                new avatar(Math.random() * width, Math.random() * height,height/20,"#0002AA","#0066FF"),
+                new avatar(Math.random() * worldWidth, Math.random() * worldHeight,height/20,"#0002AA","#0066FF"),
                 );
 var p2 = new food(
-                new avatar(Math.random() * width, Math.random() * height,height/20,"#0002AA","#505050"),
+                new avatar(Math.random() * worldWidth, Math.random() * worldHeight,height/25,"#0002AA","#505050"),
                 );
 
-var players = new Array(red, blue);
+var bush1 = new bush(
+                new buisson(Math.random() * worldWidth, Math.random() * worldHeight,height/5),
+                );                
+
+//var players = new Array(red, blue);
 var ressources = new Array(p1, p2);
+var bushes = new Array(bush1);
 
 //--------------------------//
 // END OF CONFIGURATIONS    //
 //--------------------------//
 
+//object camera to get the window following the main player
+var camera = {
+  x: 0,
+  y: 0,
+  follow: red.avatar, // main player
+  update: function() {
+      // Center the camera on the main player
+      this.x = this.follow.x - width / 2;
+      this.y = this.follow.y - height / 2;
+
+      // Clamp camera within world boundaries
+      this.x = Math.max(0, Math.min(this.x, worldWidth - width));
+      this.y = Math.max(0, Math.min(this.y, worldHeight - height));
+  }
+};
+
+function drawWorldBorder() {
+  context.strokeStyle = '#222'; // Dark grey border, adjust as you like
+  context.lineWidth = 4;        // Thickness of the border
+
+  // Draw the rectangle adjusted to the camera's view
+  context.strokeRect(
+      -camera.x,
+      -camera.y,
+      worldWidth,
+      worldHeight
+  );
+}
+
+
+function bush(buisson){
+  this.buisson = buisson;
+  this.img = new Image();
+  this.img.src = "./bush.png"; 
+
+  this.draw = draw;
+  function draw() {
+      context.drawImage(
+          this.img,
+          this.buisson.x - this.buisson.radius - camera.x,
+          this.buisson.y - this.buisson.radius - camera.y,
+          this.buisson.radius * 2,
+          this.buisson.radius * 2
+      );
+  }
+}
+
+
 function food(avatar){
     this.avatar = avatar;
 
-    this.draw=draw;
-    function draw(){
-        context.beginPath();
-        var g=context.createRadialGradient(this.avatar.x,this.avatar.y,this.avatar.radius*0.98,this.avatar.x,this.avatar.y,this.avatar.radius);
-        g.addColorStop(0,this.avatar.color);
-        g.addColorStop(1,this.avatar.bordercolor);
-        context.fillStyle=g;
-        context.arc(this.avatar.x,this.avatar.y,
-                    this.avatar.radius,0,Math.PI*2,true);
-        context.fill();
-        context.closePath();
-    }
-
-
-
+    this.draw=draw;  
+    function draw() {
+      context.beginPath();
+      var g = context.createRadialGradient(
+          this.avatar.x - camera.x, this.avatar.y - camera.y,
+          this.avatar.radius * 0.98,
+          this.avatar.x - camera.x, this.avatar.y - camera.y,
+          this.avatar.radius
+      );
+      g.addColorStop(0, this.avatar.color);
+      g.addColorStop(1, this.avatar.bordercolor);
+      context.fillStyle = g;
+      context.arc(this.avatar.x - camera.x, this.avatar.y - camera.y,
+                  this.avatar.radius, 0, Math.PI * 2, true);
+      context.fill();
+      context.closePath();
+  }
 }
 
 function avatar(x,y,r,c,bc){
@@ -73,6 +121,14 @@ function avatar(x,y,r,c,bc){
   this.radius=r;
   this.color=c;
   this.bordercolor=bc;
+}
+
+function buisson(x,y,r){
+  this.name="BUISSON"; 
+  this.x=x;
+  this.y=y; 
+  this.radius=r;
+
 }
 
 function keys(l,r,u,d){
@@ -102,10 +158,10 @@ function player(id, avatar, keys){
 
   this.updateCollisionBorder=updateCollisionBorder;
   function updateCollisionBorder(){ 
-    if (collisionLeftBorder(avatar)){ this.vx*=-1; this.avatar.x=this.avatar.radius; return true; }
-    if (collisionRightBorder(avatar)){ this.vx*=-1; this.avatar.x=width-this.avatar.radius; return true; }
-    if (collisionTopBorder(avatar)){ this.vy*=-1; this.avatar.y=this.avatar.radius; return true; }
-    if (collisionBottomBorder(avatar)){ this.vy*=-1; this.avatar.y=height-this.avatar.radius; return true; }
+    if (collisionLeftBorder(avatar)){ this.vx*=-0.5; this.avatar.x=this.avatar.radius; return true; }
+    if (collisionRightBorder(avatar)){ this.vx*=-0.5; this.avatar.x=worldWidth-this.avatar.radius; return true; }
+    if (collisionTopBorder(avatar)){ this.vy*=-0.5; this.avatar.y=this.avatar.radius; return true; }
+    if (collisionBottomBorder(avatar)){ this.vy*=-0.5; this.avatar.y=worldHeight-this.avatar.radius; return true; }
     return false;
   }
   
@@ -119,20 +175,35 @@ function player(id, avatar, keys){
     return false;
   }
 
+  this.updateCollisionFood=updateCollisionFood;
+  function updateCollisionFood(someFood){
+    if(collisionCircles(this.avatar, someFood.avatar)){
+      this.avatar.radius += someFood.avatar.radius /5;
+      someFood.avatar.radius = 0;
+      return true;
+    }
+    return false;
+  }
+
   this.updatePosition=updatePosition;
   function updatePosition(){ this.avatar.x+=this.vx; this.avatar.y+=this.vy; }
  
   this.draw=draw;
-  function draw(){
-    context.beginPath();
-    var g=context.createRadialGradient(this.avatar.x,this.avatar.y,this.avatar.radius*0.98,this.avatar.x,this.avatar.y,this.avatar.radius);
-    g.addColorStop(0,this.avatar.color);
-    g.addColorStop(1,this.avatar.bordercolor);
-    context.fillStyle=g;
-    context.arc(this.avatar.x,this.avatar.y,
-                this.avatar.radius,0,Math.PI*2,true);
-    context.fill();
-    context.closePath();
+  function draw() {
+      context.beginPath();
+      var g = context.createRadialGradient(
+          this.avatar.x - camera.x, this.avatar.y - camera.y,
+          this.avatar.radius * 0.98,
+          this.avatar.x - camera.x, this.avatar.y - camera.y,
+          this.avatar.radius
+      );
+      g.addColorStop(0, this.avatar.color);
+      g.addColorStop(1, this.avatar.bordercolor);
+      context.fillStyle = g;
+      context.arc(this.avatar.x - camera.x, this.avatar.y - camera.y,
+                  this.avatar.radius, 0, Math.PI * 2, true);
+      context.fill();
+      context.closePath();
   }
 }
 
@@ -168,49 +239,104 @@ document.onkeyup = function(event) {
   }
 }
 
+function createStaticPlayer(color, borderColor) {
+  console.log("Creating static player");
+  let radius = height / 10;
+  let x = Math.random() * (worldWidth - 2 * radius) + radius;
+  let y = Math.random() * (worldHeight - 2 * radius) + radius;
+
+  return new player(
+      Math.floor(Math.random() * 0xFFFFFF), // random ID
+      new avatar(x, y, radius, color, borderColor),
+      new keys(0x00, 0x00, 0x00, 0x00) // no active keys
+  );
+}
+function getRandomColor() {
+  let letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+var players = [];
+players.push(red);
+
+for (let i = 0; i < 9; i++) {
+  console.log("initializing player " + i);
+  let color = getRandomColor();
+  let border = getRandomColor();
+  let staticPlayer = createStaticPlayer(color, border);
+  players.push(staticPlayer);
+}
 
 
 function on_enter_frame(){
 
+    camera.update();
+
+  // loop to update players' position
+    for (var i = 0; i < players.length; i++) {
+        players[i].updateFriction();
+        players[i].updateCommands();
+        players[i].updateCollisionBorder();
+    }
   
-    var tmp = []
+    // loop to handle collision between players
+    // has to be done in different loop otherwise not every players are checked
+    var tmpPlayers = []
+    var tmpFood = []
     for(var j=0;j<players.length;j++){
         var collisionCheck=false;
+        var foodCollisionCheck=false;
         for (var i=0;i<players.length;i++) {
-            players[j].updateCollisionBorder();
-            if(i!=j){
-                players[i].updateFriction();
-                players[i].updateCommands(); 
-                
-                collisionCheck=players[i].updateCollisionSameMass(players[j]);
+            if(i!=j){                
+                collisionCheck=players[i].updateCollisionSameMass(players[j]);          
             }
         }
         
         if(collisionCheck){
             console.log("azertgyhujkl");
-            console.log(tmp);
-            tmp.push(j);
+            console.log(tmpPlayers);
+            tmpPlayers.push(j);
+        }
+        for (var k=0;k<ressources.length;k++){
+            foodCollisionCheck = players[j].updateCollisionFood(ressources[k]);
+            if(foodCollisionCheck){
+                tmpFood.push(k);
+            }
         }
     }
 
-    tmp.sort(function(a, b) { return b - a; });  // Tri décroissant
-    for( var k=0; k<tmp.length; k++){
-        players.splice(tmp[k],1);
+    tmpPlayers.sort(function(a, b) { return b - a; });  // Tri décroissant
+    for( var k=0; k<tmpPlayers.length; k++){
+        players.splice(tmpPlayers[k],1);
     }
-    console.log(players);
+    //console.log(players);
+
+    tmpFood.sort(function(a, b) { return b - a; });  // Tri décroissant
+    for( var k=0; k<tmpFood.length; k++){
+        ressources.splice(tmpFood[k],1);
+    }
     
     
     context.clearRect(0,0,width,height);
-    context.fillStyle=blue.avatar.color;
-    context.fillRect(goal.x,goal.y,goal.width,goal.height);
- 
+   // context.fillStyle=blue.avatar.color;
+    drawWorldBorder();  
     for (var i=players.length-1;i>-1;i--) {
       players[i].updatePosition();
       players[i].draw();
     }
     for (var i=ressources.length-1;i>-1;i--) {
         ressources[i].draw();
-      }
+    }
+    for (var i=bushes.length-1;i>-1;i--) {
+        bushes[i].draw();
+    }
+    context.restore();
+
+
 
 }
 
