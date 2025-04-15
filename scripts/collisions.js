@@ -49,13 +49,27 @@ var bushes = new Array(bush1);
 var camera = {
   x: 0,
   y: 0,
-  follow: red.avatars[0], // main player
-  update: function() {
-      // Center the camera on the main player
-      this.x = this.follow.x - width / 2;
-      this.y = this.follow.y - height / 2;
-
+  follow: red,
+  update: function () {
+    const avatars = this.follow.avatars;
+  
+    if (avatars.length === 0) return;
+  
+    let sumX = 0;
+    let sumY = 0;
+  
+    for (let i = 0; i < avatars.length; i++) {
+      sumX += avatars[i].x;
+      sumY += avatars[i].y;
+    }
+  
+    let centerX = sumX / avatars.length;
+    let centerY = sumY / avatars.length;
+  
+    this.x = centerX - width / 2;
+    this.y = centerY - height / 2;
   }
+  
 };
 
 function drawWorldBorder() {
@@ -129,6 +143,43 @@ function avatar(x,y,r,c,bc){
   this.bordercolor=bc;
   this.vx = 0; // new!
   this.vy = 0; // new!
+
+  this.updateCollisionSamePlayer=updateCollisionSamePlayer;
+  function updateCollisionSamePlayer(otherAvatar){
+    if(collisionCircles(this, otherAvatar)){
+      var x1=this.x;
+      var y1=this.y;
+      var r1=this.radius;
+      var x2=otherAvatar.x;
+      var y2=otherAvatar.y;
+      var r2=otherAvatar.radius;
+
+      var d=Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+
+      
+      var nx = (x2 - x1)/d;//(r1+r2);
+      var ny = (y2 - y1)/d;//(r1+r2);
+      var gx = -ny;
+      var gy = nx;
+
+      
+      var v1n = nx*this.vx + ny*this.vy;
+      var v1g = gx*this.vx + gy*this.vy;
+      var v2n = nx*otherAvatar.vx + ny*otherAvatar.vy;
+      var v2g = gx*otherAvatar.vx + gy*otherAvatar.vy;
+
+      this.vx = nx*v2n +  gx*v1g;
+      this.vy = ny*v2n +  gy*v1g;
+      otherAvatar.vx = nx*v1n +  gx*v2g;
+      otherAvatar.vy = ny*v1n +  gy*v2g;
+
+      otherAvatar.x = x1 + (r1+r2)*(x2-x1)/d;
+      otherAvatar.y = y1 + (r1+r2)*(y2-y1)/d;
+      return true;
+      
+    }
+    return false;
+  }
 }
 
 function buisson(x,y,r){
@@ -153,14 +204,13 @@ function player(id, avatar1, keys){
   this.keys=keys;
 
   //this part will be for a kind of gravity center that has to bring closer all the avatars
-  
-
   this.centerX=this.avatars[0].x;
   this.centerY=this.avatars[0].y; 
 
-
   this.applyInternalGravity=applyInternalGravity;
   function applyInternalGravity(){
+      if(this.avatars.length <=1) return;
+
       let totx = 0;
       let toty = 0;
       for(let i = 0; i < this.avatars.length; i++){
@@ -169,8 +219,32 @@ function player(id, avatar1, keys){
       }
       this.centerX = totx / this.avatars.length;
       this.centerY = toty / this.avatars.length;
+      
+      for (let i = 0; i < this.avatars.length; i++) {
+        let av = this.avatars[i];
+
+        let dx = this.centerX - av.x;
+        let dy = this.centerY - av.y;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+      
+        // Normalize direction
+        if (dist > 1e-2) {
+          dx /= dist;
+          dy /= dist;
+        }
+        av.vx += dx * gravityStrength;
+        av.vy += dy * gravityStrength; 
+        for (let j = 0; j < this.avatars.length; j++) { 
+          if(i == j) continue;    
+          //to handle the collision between the avatars of the same player  
+          av.updateCollisionSamePlayer(this.avatars[j]);
+        }
+        
+      }
 
   }
+
+  
 
   this.updateFriction=updateFriction;
   function updateFriction(){ 
@@ -206,15 +280,22 @@ function player(id, avatar1, keys){
   
   this.updateCollisionSameMass=updateCollisionSameMass;
   function updateCollisionSameMass(otherPlayer){
+    avartarToDelete = [];
     for(let i = 0; i < this.avatars.length; i++) {
-      if(collisionCircles(this.avatars[i], otherPlayer.avatars[0] ) && this.avatars[i].radius >= (otherPlayer.avatars[0].radius +3)){
-        this.avatars[i].radius += otherPlayer.avatars[0].radius /10;
-        otherPlayer.avatars[0].radius = 0;
-        console.log("collision between "+this.id+" and "+otherPlayer.id);
-        return true;
+      for(let j = 0; j < otherPlayer.avatars.length; j++) {
+        if(collisionCircles(this.avatars[i], otherPlayer.avatars[j]) && this.avatars[i].radius >= (otherPlayer.avatars[j].radius +3)){
+          this.avatars[i].radius += otherPlayer.avatars[j].radius /10;
+          otherPlayer.avatars[j].radius = 0;
+          console.log("collision between "+this.id+" and "+otherPlayer.id);
+          avartarToDelete.push(j);
+        }
+      }
+      avartarToDelete.sort(function(a, b) { return b - a; });  // Tri décroissant
+      for( var k=0; k<avartarToDelete.length; k++){
+          otherPlayer.avatars.splice(avartarToDelete[k],1);
       }
     }
-    return false;
+    return avartarToDelete.length > 0; // return true if any avatar was deleted
   }
 
   this.updateCollisionFood=updateCollisionFood;
@@ -400,11 +481,16 @@ function on_enter_frame(){
           bushCollisionCheck |= players[j].updateBushCollision(bushes[l]);
         }
     }
-
-    tmpPlayers.sort(function(a, b) { return b - a; });  // Tri décroissant
-    for( var k=0; k<tmpPlayers.length; k++){
-        players.splice(tmpPlayers[k],1);
+    
+    for (let i = players.length - 1; i >= 0; i--) {
+      if (players[i].avatars.length === 0) {
+        players.splice(i, 1);
+      }
     }
+    // tmpPlayers.sort(function(a, b) { return b - a; });  // Tri décroissant
+    // for( var k=0; k<tmpPlayers.length; k++){
+    //     players.splice(tmpPlayers[k],1);
+    // }
     //console.log(players);
 
     tmpFood.sort(function(a, b) { return b - a; });  // Tri décroissant
