@@ -5,10 +5,6 @@
  * $Id: RBB_collision.js 2014-01-28 buixuan $
  * ******************************************************/
 
-//--------------------------//
-// INIT SOME CONFIGURATIONS //
-//--------------------------//
-
 var context=main_window.getContext('2d');
 
 var worldWidth = 2000;
@@ -20,30 +16,32 @@ var width=main_window.width;
 var height=main_window.height;
 var friction=0.98;
 
-
 var red = new player(0x51E77E,
                     new avatar(3*worldWidth/4,worldHeight/2,height/8,"#FF0000","#FF2400"),
                     new keys(0x25,0x27,0x26,0x28, 0x20) // left, right, up, down, space
                     );
   
-var p1 = new food(
-                new avatar(Math.random() * worldWidth, Math.random() * worldHeight,height/20,"#0002AA","#0066FF"),
-                );
-var p2 = new food(
-                new avatar(Math.random() * worldWidth, Math.random() * worldHeight,height/25,"#0002AA","#505050"),
-                );
-
 var bush1 = new bush(
                 new buisson(Math.random() * worldWidth, Math.random() * worldHeight,height/5),
                 );                
 
-//var players = new Array(red, blue);
-var ressources = new Array(p1, p2);
+let ressources = [];
 var bushes = new Array(bush1);
 
-//--------------------------//
-// END OF CONFIGURATIONS    //
-//--------------------------//
+function initFood(nb){
+  for(let i=0;i<nb;i++){
+    const abs = Math.random() * worldWidth;
+    const ord = Math.random() * worldHeight;
+    const taille = height/(20+Math.random()*5);
+    const color = getRandomColor();
+    const borderColor = getRandomColor();
+
+    let food1 = new food(new avatar(abs,ord,taille,color,borderColor));
+    ressources.push(food1);
+  }
+}
+
+initFood(5);
 
 //object camera to get the window following the main player
 var camera = {
@@ -245,7 +243,6 @@ function player(id, avatar1, keys){
   }
 
   
-
   this.updateFriction=updateFriction;
   function updateFriction(){ 
     for(let i = 0; i < this.avatars.length; i++){
@@ -407,8 +404,10 @@ document.onkeyup = function(event) {
   }
 }
 
-function createStaticPlayer(color, borderColor) {
+function createStaticPlayer() {
   console.log("Creating static player");
+  let color = getRandomColor();
+  let borderColor = getRandomColor();
   let radius = height / 10;
   let x = Math.random() * (worldWidth - 2 * radius) + radius;
   let y = Math.random() * (worldHeight - 2 * radius) + radius;
@@ -431,13 +430,14 @@ function getRandomColor() {
 var players = [];
 players.push(red);
 
-for (let i = 0; i < 9; i++) {
-  console.log("initializing player " + i);
-  let color = getRandomColor();
-  let border = getRandomColor();
-  let staticPlayer = createStaticPlayer(color, border);
-  players.push(staticPlayer);
+function initPlayers(nb){
+  for (let i = 0; i < nb; i++) {
+    var staticPlayer = createStaticPlayer();
+    players.push(staticPlayer);
+  }
 }
+
+initPlayers(10);
 
 function on_enter_frame(){
 
@@ -467,7 +467,6 @@ function on_enter_frame(){
         }
         
         if(collisionCheck){
-            console.log("azertgyhujkl");
             console.log(tmpPlayers);
             tmpPlayers.push(j);
         }
@@ -518,8 +517,6 @@ function on_enter_frame(){
         bushes[i].draw();
     }
     context.restore();
-
-
 
 }
 
