@@ -30,11 +30,15 @@ function collisionBottomBorder(circle){
 
 //collisionCircles: Cercle * Cercle --> boolean
 //  revoie true ssi les deux cercles s'intersectent
-function collisionCircles(c1,c2){
+function collisionCirclesEatable(c1,c2){
     return Math.pow(c1.x-c2.x,2)+Math.pow(c1.y-c2.y,2)
-            < Math.pow(c1.radius+c2.radius,2)
+            < Math.pow(c1.radius+c2.radius,2) - Math.pow(c1.radius+c2.radius,2)/3;
 }
 
+function collisionCircles(c1,c2){
+    return Math.pow(c1.x-c2.x,2)+Math.pow(c1.y-c2.y,2)
+            < Math.pow(c1.radius+c2.radius,2);
+}
 
 //collisionCircleBox: Cercle * Rectangle --> boolean
 //  revoie true ssi les deux objets s'intersectent

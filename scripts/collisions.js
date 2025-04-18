@@ -18,8 +18,10 @@ var friction=0.98;
 
 var red = new player(0x51E77E,
                     new avatar(3*worldWidth/4,worldHeight/2,height/8,"#FF0000","#FF2400"),
-                    new keys(0x25,0x27,0x26,0x28, 0x20) // left, right, up, down, space
-                    );
+                    new keys(0x25,0x27,0x26,0x28, 0x20), // left, right, up, down, space
+                    false // isBot
+                    );  
+                
   
 var bush1 = new bush(
                 new buisson(Math.random() * worldWidth, Math.random() * worldHeight,height/5),
@@ -41,7 +43,7 @@ function initFood(nb){
   }
 }
 
-initFood(5);
+initFood(100);
 
 //object camera to get the window following the main player
 var camera = {
@@ -196,10 +198,11 @@ function keys(l,r,u,d,s){
   this.space={code:s,hold:false};
 }
 
-function player(id, avatar1, keys){
+function player(id, avatar1, keys,isBot){
   this.id=id;
   this.avatars=[avatar1];
   this.keys=keys;
+  this.isBot = isBot;
 
   //this part will be for a kind of gravity center that has to bring closer all the avatars
   this.centerX=this.avatars[0].x;
@@ -264,6 +267,22 @@ function player(id, avatar1, keys){
     }
   }
 
+  this.updatePosition=updatePosition;
+  function updatePosition(){ 
+    for (let i = 0; i < this.avatars.length; i++) {
+        this.avatars[i].x += this.avatars[i].vx;
+        this.avatars[i].y += this.avatars[i].vy;
+    }
+  }
+
+  this.pathfindingAlgo = pathfindingAlgo;
+  function pathfindingAlgo() {
+    // Implement your pathfinding algorithm here
+    // For example, you can use A* or Dijkstra's algorithm to find the shortest path to a target
+    // This is just a placeholder for demonstration purposes
+    console.log("Pathfinding algorithm executed for player " + this.id);
+  }
+
   this.updateCollisionBorder=updateCollisionBorder;
   function updateCollisionBorder(){
     for(let i = 0; i < this.avatars.length; i++){
@@ -280,7 +299,7 @@ function player(id, avatar1, keys){
     avartarToDelete = [];
     for(let i = 0; i < this.avatars.length; i++) {
       for(let j = 0; j < otherPlayer.avatars.length; j++) {
-        if(collisionCircles(this.avatars[i], otherPlayer.avatars[j]) && this.avatars[i].radius >= (otherPlayer.avatars[j].radius +3)){
+        if(collisionCirclesEatable(this.avatars[i], otherPlayer.avatars[j]) && this.avatars[i].radius >= (otherPlayer.avatars[j].radius +3)){
           this.avatars[i].radius += otherPlayer.avatars[j].radius /10;
           otherPlayer.avatars[j].radius = 0;
           console.log("collision between "+this.id+" and "+otherPlayer.id);
@@ -298,7 +317,7 @@ function player(id, avatar1, keys){
   this.updateCollisionFood=updateCollisionFood;
   function updateCollisionFood(someFood){
     for (let i = 0; i < this.avatars.length; i++) {
-      if(collisionCircles(this.avatars[i], someFood.avatar)){
+      if(collisionCirclesEatable(this.avatars[i], someFood.avatar)){
         this.avatars[i].radius += someFood.avatar.radius /5;
         someFood.avatar.radius = 0;
         return true;
@@ -318,14 +337,6 @@ function player(id, avatar1, keys){
       }
     }
     return false;
-  }
-
-  this.updatePosition=updatePosition;
-  function updatePosition(){ 
-    for (let i = 0; i < this.avatars.length; i++) {
-        this.avatars[i].x += this.avatars[i].vx;
-        this.avatars[i].y += this.avatars[i].vy;
-    }
   }
  
   this.draw=draw;
@@ -415,7 +426,8 @@ function createStaticPlayer() {
   return new player(
       Math.floor(Math.random() * 0xFFFFFF), // random ID
       new avatar(x, y, radius, color, borderColor),
-      new keys(0x00, 0x00, 0x00, 0x00) // no active keys
+      new keys(0x00, 0x00, 0x00, 0x00), // no active keys
+      true // isBot
   );
 }
 function getRandomColor() {
@@ -446,7 +458,10 @@ function on_enter_frame(){
   // loop to update players' position
     for (var i = 0; i < players.length; i++) {
         players[i].updateFriction();
-        players[i].updateCommands();
+        if(!players[i].isBot){
+            players[i].updateCommands();
+        }
+        
         players[i].applyInternalGravity();
         players[i].updateCollisionBorder();
     }
@@ -486,11 +501,6 @@ function on_enter_frame(){
         players.splice(i, 1);
       }
     }
-    // tmpPlayers.sort(function(a, b) { return b - a; });  // Tri décroissant
-    // for( var k=0; k<tmpPlayers.length; k++){
-    //     players.splice(tmpPlayers[k],1);
-    // }
-    //console.log(players);
 
     tmpFood.sort(function(a, b) { return b - a; });  // Tri décroissant
     for( var k=0; k<tmpFood.length; k++){
@@ -507,7 +517,11 @@ function on_enter_frame(){
    // context.fillStyle=blue.avatar.color;
     drawWorldBorder();  
     for (var i=players.length-1;i>-1;i--) {
-      players[i].updatePosition();
+      if(players[i].isBot){
+        players[i].pathfindingAlgo();
+      }else{
+        players[i].updatePosition();
+      }      
       players[i].draw();
     }
     for (var i=ressources.length-1;i>-1;i--) {
