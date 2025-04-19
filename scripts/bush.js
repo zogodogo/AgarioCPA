@@ -1,3 +1,4 @@
+//initialize a bush given his avatar.
 function bush(buisson){
     this.buisson = buisson;
     this.img = new Image();

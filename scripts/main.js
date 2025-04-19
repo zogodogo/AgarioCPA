@@ -72,9 +72,7 @@ function main(){
   // loop to update players' position
     for (var i = 0; i < players.length; i++) {
         players[i].updateFriction();
-        if(!players[i].isBot){
-            players[i].updateCommands();
-        }
+        players[i].updateCommands();
         
         players[i].applyInternalGravity();
         players[i].updateCollisionBorder();
@@ -131,11 +129,7 @@ function main(){
    // context.fillStyle=blue.avatar.color;
     drawWorldBorder();  
     for (var i=players.length-1;i>-1;i--) {
-      if(players[i].isBot){
-        players[i].pathfindingAlgo();
-      }else{
-        players[i].updatePosition();
-      }      
+      players[i].updatePosition();
       players[i].draw();
     }
     for (var i=ressources.length-1;i>-1;i--) {
