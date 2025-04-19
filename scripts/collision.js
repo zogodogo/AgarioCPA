@@ -1,11 +1,3 @@
-var callback = function() {setInterval(on_enter_frame,30);}
-var head = document.getElementsByTagName('head')[0];
-var script = document.createElement('script');
-script.src = "./scripts/collisions.js";
-script.onreadystatechange = callback;
-script.onload = callback;
-head.appendChild(script);
-
 //collisionLeftBorder: Cercle --> boolean
 //  revoie true ssi le cercle intersecte la bordure
 //  gauche de la fenêtre courrante
@@ -29,12 +21,13 @@ function collisionBottomBorder(circle){
 }
 
 //collisionCircles: Cercle * Cercle --> boolean
-//  revoie true ssi les deux cercles s'intersectent
+//  revoie true ssi un cercle peut manger l'autre.
 function collisionCirclesEatable(c1,c2){
     return Math.pow(c1.x-c2.x,2)+Math.pow(c1.y-c2.y,2)
             < Math.pow(c1.radius+c2.radius,2) - Math.pow(c1.radius+c2.radius,2)/3;
 }
 
+//Renvoie true ssi les deux cercles s'intersectent
 function collisionCircles(c1,c2){
     return Math.pow(c1.x-c2.x,2)+Math.pow(c1.y-c2.y,2)
             < Math.pow(c1.radius+c2.radius,2);
