@@ -1,4 +1,4 @@
-var callback = function() {setInterval(main,30);}
+var callback = function() {setInterval(main,40);}
 script = document.getElementById("main_script");
 script.onreadystatechange = callback;
 script.onload = callback;
@@ -8,16 +8,16 @@ var red = new player(0x51E77E,
                     new keys(0x25,0x27,0x26,0x28, 0x20), // left, right, up, down, space
                     false // isBot
                     );  
-                
-var bush1 = new bush(
-                new buisson(Math.random() * worldWidth, Math.random() * worldHeight,height/5),
-                );                
+                               
 
 let ressources = [];
-var bushes = new Array(bush1);
+let bushes = [];
+var players = [];
+players.push(red);
 
-
-initFood(100);
+initPlayers(100);
+initFood(500);
+initBush(100,bushes);
 
   //object camera to get the window following the main player
   var camera = {
@@ -59,12 +59,6 @@ initFood(100);
     );
   }
 
-
-var players = [];
-players.push(red);
-
-initPlayers(10);
-
 function main(){
 
     camera.update();
@@ -94,11 +88,11 @@ function main(){
         }
         
         if(collisionCheck){
-            console.log(tmpPlayers);
             tmpPlayers.push(j);
         }
+
         for (var k=0;k<ressources.length;k++){
-            foodCollisionCheck |= players[j].updateCollisionFood(ressources[k]);
+            foodCollisionCheck = players[j].updateCollisionFood(ressources[k]);
             if(foodCollisionCheck){
                 tmpFood.push(k);
             }
@@ -108,6 +102,7 @@ function main(){
         }
     }
     
+    //If there's no avatar remaining for a player, remove the player.
     for (let i = players.length - 1; i >= 0; i--) {
       if (players[i].avatars.length === 0) {
         players.splice(i, 1);
@@ -124,9 +119,7 @@ function main(){
         bushes.splice(tmpBush[k],1);
     }
     
-    
     context.clearRect(0,0,width,height);
-   // context.fillStyle=blue.avatar.color;
     drawWorldBorder();  
     for (var i=players.length-1;i>-1;i--) {
       players[i].updatePosition();

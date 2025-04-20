@@ -15,3 +15,10 @@ function bush(buisson){
         );
     }
   }
+
+  function initBush(nb,bushes){
+    for(let i=0;i<nb;i++){
+        var b = new bush(new buisson(Math.random()*worldWidth,Math.random()*worldHeight,main_window.height/5));
+        bushes.push(b);
+    }
+  }

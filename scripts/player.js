@@ -67,7 +67,7 @@ function player(id, avatar1, keys,isBot){
 
 
   if(isBot){
-    this.updateCommands=updateCommandsBot;
+    this.updateCommands=updateCommandsRandomBot;
   }else{
     this.updateCommands=updateCommands;
   }
@@ -79,18 +79,19 @@ function player(id, avatar1, keys,isBot){
       if(this.keys.right.hold){this.avatars[i].vx+= 0.5;}
       if(this.keys.up.hold){this.avatars[i].vy-= 0.5;}
       if(this.keys.down.hold){this.avatars[i].vy+= 0.5;}
-      if(this.keys.space.hold){console.log("space split"); this.split();}
+      if(this.keys.space.hold){this.split();}
     }
   }
 
-  function updateCommandsBot(){
+  
+  function updateCommandsRandomBot(){
     let randomInt = Math.floor(Math.random() * 5);
     for(let i = 0; i < this.avatars.length; i++){
       if(randomInt==0){this.avatars[i].vx -= 0.5;}//to handle the speed of the player (1-this.avatar.radius)
       if(randomInt==1){this.avatars[i].vx+= 0.5;}
       if(randomInt==2){this.avatars[i].vy-= 0.5;}
       if(randomInt==3){this.avatars[i].vy+= 0.5;}
-      if(randomInt==4){console.log("space split"); this.split();}
+      if(randomInt==4){this.split();}
     }
   }
 
@@ -115,14 +116,15 @@ function player(id, avatar1, keys,isBot){
   }
   
   this.updateCollisionSameMass=updateCollisionSameMass;
+
+  //function to remove the players getting eaten.
   function updateCollisionSameMass(otherPlayer){
     avartarToDelete = [];
     for(let i = 0; i < this.avatars.length; i++) {
       for(let j = 0; j < otherPlayer.avatars.length; j++) {
-        if(collisionCirclesEatable(this.avatars[i], otherPlayer.avatars[j]) && this.avatars[i].radius >= (otherPlayer.avatars[j].radius +3)){
+        if(collisionCirclesEatable(this.avatars[i], otherPlayer.avatars[j]) && this.avatars[i].radius >= (otherPlayer.avatars[j].radius+3)){
           this.avatars[i].radius += otherPlayer.avatars[j].radius /10;
           otherPlayer.avatars[j].radius = 0;
-          console.log("collision between "+this.id+" and "+otherPlayer.id);
           avartarToDelete.push(j);
         }
       }
@@ -138,7 +140,7 @@ function player(id, avatar1, keys,isBot){
   function updateCollisionFood(someFood){
     for (let i = 0; i < this.avatars.length; i++) {
       if(collisionCirclesEatable(this.avatars[i], someFood.avatar)){
-        this.avatars[i].radius += someFood.avatar.radius /5;
+        this.avatars[i].radius += someFood.avatar.radius/5;
         someFood.avatar.radius = 0;
         return true;
       }
@@ -151,8 +153,6 @@ function player(id, avatar1, keys,isBot){
     for (let i = 0; i < this.avatars.length; i++) {
       if(collisionCircles(this.avatars[i], aBush.buisson)&& this.avatars[i].radius >= (aBush.buisson.radius +3)){
         this.split();
-        // this.avatars[i].radius += aBush.buisson.radius /5;
-        // aBush.avatar.radius = 0;
         return true;
       }
     }
