@@ -67,7 +67,9 @@ function player(id, avatar1, keys,isBot){
 
 
   if(isBot){
-    this.updateCommands=updateCommandsRandomBot;
+    //this.updateCommands=updateCommandsRandomBot;
+    this.updateBotPosition=pathfinding;
+    this.updateCommandsFoodBot=updateCommandsFoodBot;
   }else{
     this.updateCommands=updateCommands;
   }
@@ -94,6 +96,96 @@ function player(id, avatar1, keys,isBot){
       if(randomInt==4){this.split();}
     }
   }
+
+  function pathfinding(targetX, targetY, listBushes) {
+    //actually not really a pathfinding as we don't have cases 
+    // so it's trying to reach the main player but the bushes have a repulsion force that is felt 
+    // by bots with a radius bigger than the bush radius
+
+    for(let i = 0; i< this.avatars.length; i++){
+      let alreadyUpdated = false;
+
+      let attraction = { x: targetX - this.avatars[i].x, y: targetY - this.avatars[i].y };
+      let repulsion = { x: 0, y: 0 };
+
+      let distToTarget = Math.sqrt(attraction.x ** 2 + attraction.y ** 2);
+      if (distToTarget > 1e-2) {
+        attraction.x /= distToTarget;
+        attraction.y /= distToTarget;
+      }
+
+      let dx = targetX - this.avatars[i].x;
+      let dy = targetY - this.avatars[i].y;
+      //let dist = Math.sqrt(dx * dx + dy * dy);
+      for(let j = 0; j < listBushes.length; j++){
+        if(this.avatars[i].radius > listBushes[j].buisson.radius + 3){
+          if(bushNear(this.avatars[i], listBushes[j].buisson)){ //need to define bushNear
+            dx = this.avatars[i].x - listBushes[j].buisson.x;
+            dy = this.avatars[i].y - listBushes[j].buisson.y;
+            //let dist = Math.sqrt(dx * dx + dy * dy);
+
+            repulsion.x += dx * 2;//0.5; // Adjust strength as needed
+            repulsion.y += dy * 2;//0.5; // Adjust strength as needed
+
+            let repLength = Math.sqrt(repulsion.x ** 2 + repulsion.y ** 2);
+            if (repLength > 1e-2) {
+              repulsion.x /= repLength;
+              repulsion.y /= repLength;
+            }
+            // let result = avoidBush(this.avatars[i], listBushes[j].buisson, targetX, targetY);
+            // dx = result.dx;
+            // dy = result.dy;
+
+            this.avatars[i].vx += attraction.x * 0.2 + repulsion.x * 0.5;// * 0.2; // Adjust speed as needed
+            this.avatars[i].vy += attraction.y * 0.2 + repulsion.y * 0.5;// * 0.2;
+            alreadyUpdated = true;
+            break;
+          }
+        }
+      }
+      if(!alreadyUpdated){
+        if (distToTarget > 1e-2) {
+          dx /= distToTarget;
+          dy /= distToTarget;
+        }
+        this.avatars[i].vx += dx * 0.2; // Adjust speed as needed
+        this.avatars[i].vy += dy * 0.2; // Adjust speed as needed
+      }
+    }
+  }
+
+  function updateCommandsFoodBot(food){
+
+    let avatars2= this.avatars;
+    function nearestFood(){
+
+      let rep = food[0];
+      let minDist = Number.MAX_SAFE_INTEGER;
+      for(let i=0;i<food.length;i++){
+        for(let j=0;j<avatars2.length;j++){
+          let dx = avatars2[j].x - food[i].avatar.x;
+          let dy = avatars2[j].y - food[i].avatar.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if(minDist>dist){
+            minDist = dist;
+            rep = food[i];
+          }
+        }
+      }
+      return rep;
+    }
+    let nearestFood1 = nearestFood();
+
+    for(let i = 0; i < this.avatars.length; i++){
+      if(nearestFood1.avatar.x<this.avatars[i].x){this.avatars[i].vx -= 0.5;}
+      if(nearestFood1.avatar.x>this.avatars[i].x){this.avatars[i].vx+= 0.5;}
+      if(nearestFood1.avatar.y<this.avatars[i].y){this.avatars[i].vy-= 0.5;}
+      if(nearestFood1.avatar.y>this.avatars[i].y){this.avatars[i].vy+= 0.5;}
+      //if(randomInt==4){this.split();}
+    }
+
+  }
+  
 
   this.updatePosition=updatePosition;
   //Updating position of every avatar of the player
