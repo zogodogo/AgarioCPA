@@ -3,22 +3,22 @@ script = document.getElementById("main_script");
 script.onreadystatechange = callback;
 script.onload = callback;
 
+//the player
 var red = new player(0x51E77E,
-                    new avatar(3*worldWidth/4,worldHeight/2,height/8,"#FF0000","#FF2400"),
+                    new avatar(3*worldWidth/4,worldHeight/2,height/20,"#FF0000","#FF2400"),
                     new keys(0x25,0x27,0x26,0x28, 0x20), // left, right, up, down, space
                     false // isBot
                     );  
                                
-
 let ressources = [];
 let bushes = [];
 var players = [];
 
 players.push(red);
 
-initPlayers(50);
-initFood(500);
-initBush(20,bushes);
+initPlayers(20);
+initFood(100);
+initBush(30,bushes);
 
   //object camera to get the window following the main player
   var camera = {

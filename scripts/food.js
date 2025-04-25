@@ -24,7 +24,7 @@ function initFood(nb){
     for(let i=0;i<nb;i++){
       const abs = Math.random() * worldWidth;
       const ord = Math.random() * worldHeight;
-      const taille = height/(20+Math.random()*5);
+      const taille = height/(30+Math.random()*5);
       const color = getRandomColor();
       const borderColor = getRandomColor();
   

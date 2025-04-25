@@ -16,9 +16,10 @@ function bush(buisson){
     }
   }
 
+  //function initializing the bushes.
   function initBush(nb,bushes){
     for(let i=0;i<nb;i++){
-        var b = new bush(new buisson(Math.random()*worldWidth,Math.random()*worldHeight,main_window.height/5));
+        var b = new bush(new buisson(Math.random()*worldWidth,Math.random()*worldHeight,main_window.height/6));
         bushes.push(b);
     }
   }

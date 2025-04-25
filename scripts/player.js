@@ -332,7 +332,7 @@ function createStaticPlayer() {
     console.log("Creating static player");
     let color = getRandomColor();
     let borderColor = getRandomColor();
-    let radius = height / 10;
+    let radius = height / 20;
     let x = Math.random() * (worldWidth - 2 * radius) + radius;
     let y = Math.random() * (worldHeight - 2 * radius) + radius;
   
