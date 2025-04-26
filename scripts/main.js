@@ -16,8 +16,8 @@ var players = [];
 
 players.push(red);
 
-initPlayers(20);
-initFood(100);
+initPlayers(19);
+initFood(300);
 initBush(30,bushes);
 
   //object camera to get the window following the main player
@@ -66,8 +66,15 @@ function main(){
 
     camera.update();
 
-
     let mainPlayer = players.find(p => p.id === red.id);
+
+    //When the only player remaining is you.
+    if(mainPlayer&&players.length==1){
+      context.textAlign="center";
+      context.font="200px Arial";
+      context.fillText("Gagné!",width/2, height/2);
+    }else{
+
     if(!mainPlayer){
       context.textAlign="center";
       context.font="200px Arial";
@@ -81,7 +88,7 @@ function main(){
       for (var i = 0; i < players.length; i++) {
           players[i].updateFriction();
           if (players[i].isBot) {
-            if (players[i].avatars[0].radius >= mainPlayer.avatars[0].radius + 3){
+            if (players[i].avatars[0].radius >= mainPlayer.biggestAvatar().radius + 3){
               players[i].updateBotPosition(targetX, targetY, bushes);
             }else{
               players[i].updateCommandsFoodBot(ressources);
@@ -159,6 +166,6 @@ function main(){
       }
       context.restore();
     }
-
+    }
 }
 

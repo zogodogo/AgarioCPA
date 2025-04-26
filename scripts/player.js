@@ -15,6 +15,18 @@ function player(id, avatar1, keys,isBot){
   this.isBot = isBot;
   this.keys = isBot ? null : (keys);
 
+  this.biggestAvatar=biggestAvatar;
+
+  function biggestAvatar(){
+    let rep = this.avatars[0];
+    for(let i=1;i<this.avatars.length;i++){
+      if(this.avatars[i].radius>rep.radius){
+        rep=this.avatars[i];
+      }
+    }
+    return rep;
+  }
+
   //this part will be for a kind of gravity center that has to bring closer all the avatars of a same player.
   this.centerX=this.avatars[0].x;
   this.centerY=this.avatars[0].y; 
@@ -215,7 +227,7 @@ function player(id, avatar1, keys,isBot){
     for(let i = 0; i < this.avatars.length; i++) {
       for(let j = 0; j < otherPlayer.avatars.length; j++) {
         if(collisionCirclesEatable(this.avatars[i], otherPlayer.avatars[j]) && this.avatars[i].radius >= (otherPlayer.avatars[j].radius+3)){
-          this.avatars[i].radius += otherPlayer.avatars[j].radius /10;
+          this.avatars[i].radius += otherPlayer.avatars[j].radius /20;
           otherPlayer.avatars[j].radius = 0;
           avartarToDelete.push(j);
         }
@@ -232,7 +244,7 @@ function player(id, avatar1, keys,isBot){
   function updateCollisionFood(someFood){
     for (let i = 0; i < this.avatars.length; i++) {
       if(collisionCirclesEatable(this.avatars[i], someFood.avatar)){
-        this.avatars[i].radius += someFood.avatar.radius/5;
+        this.avatars[i].radius += someFood.avatar.radius/20;
         someFood.avatar.radius = 0;
         return true;
       }
