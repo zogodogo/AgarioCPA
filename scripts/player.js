@@ -27,7 +27,8 @@ function player(id, avatar1, keys,isBot){
     return rep;
   }
 
-  //this part will be for a kind of gravity center that has to bring closer all the avatars of a same player.
+  //this part will be for a kind of gravity center that has to bring 
+  // closer all the avatars of a same player.
   this.centerX=this.avatars[0].x;
   this.centerY=this.avatars[0].y; 
 
@@ -134,7 +135,6 @@ function player(id, avatar1, keys,isBot){
           if(bushNear(this.avatars[i], listBushes[j].buisson)){ //need to define bushNear
             dx = this.avatars[i].x - listBushes[j].buisson.x;
             dy = this.avatars[i].y - listBushes[j].buisson.y;
-            //let dist = Math.sqrt(dx * dx + dy * dy);
 
             repulsion.x += dx * 2;//0.5; // Adjust strength as needed
             repulsion.y += dy * 2;//0.5; // Adjust strength as needed
@@ -144,9 +144,6 @@ function player(id, avatar1, keys,isBot){
               repulsion.x /= repLength;
               repulsion.y /= repLength;
             }
-            // let result = avoidBush(this.avatars[i], listBushes[j].buisson, targetX, targetY);
-            // dx = result.dx;
-            // dy = result.dy;
 
             this.avatars[i].vx += attraction.x * 0.2 + repulsion.x * 0.5;// * 0.2; // Adjust speed as needed
             this.avatars[i].vy += attraction.y * 0.2 + repulsion.y * 0.5;// * 0.2;
